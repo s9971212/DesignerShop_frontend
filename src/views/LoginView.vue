@@ -38,7 +38,6 @@ const login = async () => {
     try {
         const response = await axios.post('http://localhost:8080/api/auth', requestData);
         localStorage.setItem('jwtToken', response.data);
-        console.log(response);
     } catch (error) {
         if (axios.isAxiosError(error)) {
             if (error.response && error.response.data) {
