@@ -1,23 +1,33 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue';
 import axios from 'axios';
+import { useRouter } from 'vue-router';
 
 const errorMessage = ref('');
 const username = ref('');
 const usernameWasEdited = ref(false);
+const usernameHasError = ref(false);
 const password = ref('');
 const passwordWasEdited = ref(false);
+const passwordHasError = ref(false);
 const passwordVisible = ref(false);
+const router = useRouter();
 
 watch(username, (newValue) => {
-    if (newValue !== '') {
+    if (newValue) {
         usernameWasEdited.value = true;
+        usernameHasError.value = false;
+    } else if (usernameWasEdited.value) {
+        usernameHasError.value = true;
     }
 });
 
 watch(password, (newValue) => {
-    if (newValue !== '') {
+    if (newValue) {
         passwordWasEdited.value = true;
+        passwordHasError.value = false;
+    } else if (passwordWasEdited.value) {
+        passwordHasError.value = true;
     }
 });
 
@@ -26,7 +36,7 @@ const togglePasswordVisibility = () => {
 };
 
 const isFormValid = computed(() => {
-    return username.value !== '' && password.value !== '';
+    return username.value && password.value;
 });
 
 const login = async () => {
@@ -38,15 +48,16 @@ const login = async () => {
     try {
         const response = await axios.post('http://localhost:8080/api/auth', requestData);
         localStorage.setItem('jwtToken', response.data);
+        router.push('/');
     } catch (error) {
         if (axios.isAxiosError(error)) {
             if (error.response && error.response.data) {
                 errorMessage.value = error.response.data;
             } else {
-                errorMessage.value = '發生未知錯誤，請稍後再試。';
+                errorMessage.value = '發生未知錯誤，請稍後再試';
             }
         } else {
-            errorMessage.value = '發生未知錯誤，請稍後再試。';
+            errorMessage.value = '發生未知錯誤，請稍後再試';
         }
     }
 }
@@ -85,20 +96,18 @@ const login = async () => {
                         </div>
                         <form @submit.prevent="login">
                             <div style="margin-bottom: 10px;">
-                                <div class="input-group"
-                                    :class="{ 'input-group-error': username === '' && usernameWasEdited }">
+                                <div class="input-group" :class="{ 'input-group-error': usernameHasError }">
                                     <input v-model.trim="username" class="input-text" type="text"
                                         placeholder="電話號碼/使用者名稱/Email" autocomplete="on" name="account" maxlength="30">
                                 </div>
                                 <div class="input-error-message">
-                                    <p v-if="username === '' && usernameWasEdited">
+                                    <p v-if="usernameHasError">
                                         請填寫此欄位
                                     </p>
                                 </div>
                             </div>
                             <div style="margin-bottom: 14px;">
-                                <div class="input-group"
-                                    :class="{ 'input-group-error': password === '' && passwordWasEdited }">
+                                <div class="input-group" :class="{ 'input-group-error': passwordHasError }">
                                     <input v-model.trim="password" class="input-text"
                                         :type="passwordVisible ? 'text' : 'password'" placeholder="密碼"
                                         autocomplete="current-password" name="password" maxlength="16">
@@ -119,7 +128,7 @@ const login = async () => {
                                     </button>
                                 </div>
                                 <div class="input-error-message">
-                                    <p v-if="password === '' && passwordWasEdited">
+                                    <p v-if="passwordHasError">
                                         請填寫此欄位
                                     </p>
                                 </div>
@@ -167,61 +176,61 @@ const login = async () => {
                         <div class="column-title">客服中心</div>
                         <ul class="column-links">
                             <li class="link-item">
-                                <a href="https://help.shopee.tw/tw/s" class="link" title="" target="_blank"
+                                <a href="https://help.shopee.tw/tw/s" class="link" target="_blank"
                                     rel="noopener noreferrer">
                                     <span class="link-text">幫助中心</span>
                                 </a>
                             </li>
                             <li class="link-item">
                                 <a href="https://help.shopee.tw/portal/article/83489-[%E6%96%B0%E6%89%8B%E4%B8%8A%E8%B7%AF]-%E4%BB%80%E9%BA%BC%E6%98%AF%E8%9D%A6%E7%9A%AE%E5%95%86%E5%9F%8E?"
-                                    class="link" title="" target="_blank" rel="noopener noreferrer">
+                                    class="link" target="_blank" rel="noopener noreferrer">
                                     <span class="link-text">蝦皮商城</span>
                                 </a>
                             </li>
                             <li class="link-item">
                                 <a href="https://help.shopee.tw/portal/article/80089-[%E6%96%B0%E6%89%8B%E4%B8%8A%E8%B7%AF]-%E8%9D%A6%E7%9A%AE%E8%B3%BC%E7%89%A9%E6%94%AF%E6%8F%B4%E5%93%AA%E4%BA%9B%E4%BB%98%E6%AC%BE%E6%96%B9%E5%BC%8F%E8%88%87%E4%BB%98%E6%AC%BE%E9%87%91%E9%A1%8D%E4%B8%8A%E9%99%90?"
-                                    class="link" title="" target="_blank" rel="noopener noreferrer">
+                                    class="link" target="_blank" rel="noopener noreferrer">
                                     <span class="link-text">付款方式</span>
                                 </a>
                             </li>
                             <li class="link-item">
                                 <a href="https://help.shopee.tw/portal/article/79770-[%E8%9D%A6%E7%9A%AE%E9%8C%A2%E5%8C%85]-%E4%BB%80%E9%BA%BC%E6%98%AF%E8%9D%A6%E7%9A%AE%E9%8C%A2%E5%8C%85"
-                                    class="link" title="" target="_blank" rel="noopener noreferrer">
+                                    class="link" target="_blank" rel="noopener noreferrer">
                                     <span class="link-text">蝦皮錢包</span>
                                 </a>
                             </li>
                             <li class="link-item">
                                 <a href="https://help.shopee.tw/portal/article/79806-[%3Cem%3E%E8%9D%A6%3C%2Fem%3E%3Cem%3E%E5%B9%A3%3C%2Fem%3E%E7%9B%B8%E9%97%9C]-%E4%BB%80%E9%BA%BC%E6%98%AF%3Cem%3E%E8%9D%A6%3C%2Fem%3E%3Cem%3E%E5%B9%A3%3C%2Fem%3E"
-                                    class="link" title="" target="_blank" rel="noopener noreferrer">
+                                    class="link" target="_blank" rel="noopener noreferrer">
                                     <span class="link-text">蝦幣</span>
                                 </a>
                             </li>
                             <li class="link-item">
                                 <a href="https://help.shopee.tw/portal/article/79787-[%e5%85%8d%e9%81%8b]-%e5%85%8d%e9%81%8b%e9%82%84%e6%9c%89%e5%97%8e%ef%bc%9f"
-                                    class="link" title="" target="_blank" rel="noopener noreferrer">
+                                    class="link" target="_blank" rel="noopener noreferrer">
                                     <span class="link-text">運費補助</span>
                                 </a>
                             </li>
                             <li class="link-item">
                                 <a href="https://help.shopee.tw/portal/article/79724-[%E9%80%80%E8%B2%A8%2F%E9%80%80%E6%AC%BE]-%E9%80%80%E8%B2%A8%E9%80%80%E6%AC%BE%E6%87%B6%E4%BA%BA%E5%8C%85"
-                                    class="link" title="" target="_blank" rel="noopener noreferrer">
+                                    class="link" target="_blank" rel="noopener noreferrer">
                                     <span class="link-text">退貨退款</span>
                                 </a>
                             </li>
                             <li class="link-item">
                                 <a href="https://help.shopee.tw/portal/article/80020-[%E8%A8%82%E5%96%AE%E4%BF%9D%E9%9A%9C]-%E4%BB%80%E9%BA%BC%E6%98%AF%E5%BB%B6%E9%95%B7%E8%A8%82%E5%96%AE%E6%92%A5%E6%AC%BE"
-                                    class="link" title="" target="_blank" rel="noopener noreferrer">
+                                    class="link" target="_blank" rel="noopener noreferrer">
                                     <span class="link-text">延長訂單撥款</span>
                                 </a>
                             </li>
                             <li class="link-item">
                                 <a href="https://help.shopee.tw/portal/article/79725-[%e8%81%af%e7%b5%a1%e5%ae%a2%e6%9c%8d]-%e5%a6%82%e4%bd%95%e8%81%af%e7%b5%a1%e8%9d%a6%e7%9a%ae%e5%ae%a2%e6%9c%8d%3F"
-                                    class="link" title="" target="_blank" rel="noopener noreferrer">
+                                    class="link" target="_blank" rel="noopener noreferrer">
                                     <span class="link-text">聯絡客服</span>
                                 </a>
                             </li>
                             <li class="link-item">
-                                <a href="https://shopee.tw/m/Anti-fraud-advocacy" class="link" title="" target="_blank"
+                                <a href="https://shopee.tw/m/Anti-fraud-advocacy" class="link" target="_blank"
                                     rel="noopener noreferrer">
                                     <span class="link-text">防詐騙宣傳</span>
                                 </a>
@@ -232,13 +241,13 @@ const login = async () => {
                         <div class="column-title">關於蝦皮</div>
                         <ul class="column-links">
                             <li class="link-item">
-                                <a href="https://careers.shopee.com/about/" class="link" title="" target="_blank"
+                                <a href="https://careers.shopee.com/about/" class="link" target="_blank"
                                     rel="noopener noreferrer">
                                     <span class="link-text">關於蝦皮</span>
                                 </a>
                             </li>
                             <li class="link-item">
-                                <a href="https://careers.shopee.com/jobs" class="link" title="" target="_blank"
+                                <a href="https://careers.shopee.com/jobs" class="link" target="_blank"
                                     rel="noopener noreferrer">
                                     <span class="link-text">加入我們</span>
                                 </a>
@@ -256,25 +265,25 @@ const login = async () => {
                                 </a>
                             </li>
                             <li class="link-item">
-                                <a href="https://shopee.tw/mall/" class="link" title="" target="_blank"
+                                <a href="https://shopee.tw/mall/" class="link" target="_blank"
                                     rel="noopener noreferrer">
                                     <span class="link-text">蝦皮商城</span>
                                 </a>
                             </li>
                             <li class="link-item">
-                                <a href="https://seller.shopee.tw/" class="link" title="" target="_blank"
+                                <a href="https://seller.shopee.tw/" class="link" target="_blank"
                                     rel="noopener noreferrer">
                                     <span class="link-text">賣家中心</span>
                                 </a>
                             </li>
                             <li class="link-item">
-                                <a href="https://shopee.tw/flash_sale/" class="link" title="" target="_blank"
+                                <a href="https://shopee.tw/flash_sale/" class="link" target="_blank"
                                     rel="noopener noreferrer">
                                     <span class="link-text">限時特賣</span>
                                 </a>
                             </li>
                             <li class="link-item">
-                                <a href="mailto:media.tw%40shopee.com" class="link" title="" target="_blank"
+                                <a href="mailto:media.tw%40shopee.com" class="link" target="_blank"
                                     rel="noopener noreferrer">
                                     <span class="link-text">聯絡媒體</span>
                                 </a>
@@ -362,7 +371,7 @@ const login = async () => {
                         <div class="column-title">關注我們</div>
                         <ul class="column-links">
                             <li class="link-item">
-                                <a href="https://facebook.com/ShopeeTW" class="link" title="" target="_blank"
+                                <a href="https://facebook.com/ShopeeTW" class="link" target="_blank"
                                     rel="noopener noreferrer">
                                     <img class="social-media-icon"
                                         src="https://down-tw.img.susercontent.com/file/952b3cd5f11daa5242f9448fb76b5ae2">
@@ -370,7 +379,7 @@ const login = async () => {
                                 </a>
                             </li>
                             <li class="link-item">
-                                <a href="https://instagram.com/Shopee_TW" class="link" title="" target="_blank"
+                                <a href="https://instagram.com/Shopee_TW" class="link" target="_blank"
                                     rel="noopener noreferrer">
                                     <img class="social-media-icon"
                                         src="https://down-tw.img.susercontent.com/file/fc9052e647a0ec204e480fc27a35309f">
@@ -386,7 +395,7 @@ const login = async () => {
                                 </a>
                             </li>
                             <li class="link-item">
-                                <a href="https://linkedin.com/company/shopee" class="link" title="" target="_blank"
+                                <a href="https://linkedin.com/company/shopee" class="link" target="_blank"
                                     rel="noopener noreferrer">
                                     <img class="social-media-icon"
                                         src="https://down-tw.img.susercontent.com/file/144b82f1a4b78ebdc1ea68ec15a9eeae">
@@ -394,8 +403,7 @@ const login = async () => {
                                 </a>
                             </li>
                             <li class="link-item">
-                                <a href="https://shopee.tw/blog" class="link" title="" target="_blank"
-                                    rel="noopener noreferrer">
+                                <a href="https://shopee.tw/blog" class="link" target="_blank" rel="noopener noreferrer">
                                     <img class="social-media-icon"
                                         src="https://down-tw.img.susercontent.com/file/b3153fde9f151c179cb2b4d854205ab9">
                                     <span class="link-text">蝦品輯部落格</span>
@@ -643,16 +651,13 @@ const login = async () => {
 }
 
 .eye-icon-button {
-    margin: 0;
     border: 0;
     padding: 0 15px 0 12px;
     background: transparent;
     cursor: pointer;
     outline: none;
-    text-transform: none;
     display: flex;
     align-items: center;
-    overflow: visible;
 }
 
 .eye-icon-open {
@@ -681,6 +686,7 @@ const login = async () => {
     min-width: 140px;
     height: 40px;
     box-shadow: 0 1px 1px rgba(0, 0, 0, .09);
+    cursor: pointer;
     color: #ffffff;
     outline: none;
     overflow: visible;
